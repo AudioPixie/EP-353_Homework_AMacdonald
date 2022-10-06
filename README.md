@@ -8,7 +8,7 @@ Syllabus Quiz: `✓`
 Problem Set 1: `✓`
 
 ####September 29th
-Quiz 1: ` `
+Quiz 1: `✓`
 
 ####October 6th
 Problem Set 2: ` `
