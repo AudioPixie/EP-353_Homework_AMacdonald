@@ -11,13 +11,13 @@ Problem Set 1: `✓`
 Quiz 1: `✓`
 
 ####October 6th
-Problem Set 2: ` `
+Problem Set 2: `✓`
 
 ####October 13th
-Quiz 2: ` `
+Quiz 2: `✓`
 
 ####October 20th
-Problem Set 3: ` `
+Problem Set 3: `✓`
 
 ####October 27th
 Quiz 3: ` `  
