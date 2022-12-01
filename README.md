@@ -20,19 +20,19 @@ Quiz 2: `✓`
 Problem Set 3: `✓`
 
 ####October 27th
-Quiz 3: ` `  
-Mock Exam: ` `  
-Midterm: ` `  
+Quiz 3: `✓`  
+Mock Exam: `✓`  
+Midterm: `✓`  
 
 ####November 17th
 Problem Set 4: ` `
 
 ####November 24th
-Quiz 4: ` `
+Quiz 4: `✓`
 
 ####December 1st
-Problem Set 5: ` `  
-Final Project Proposal: ` `  
+Problem Set 5: `~`  
+Final Project Proposal: `✓`  
 
 ####December 8th
 Final Project Status Report: ` `
