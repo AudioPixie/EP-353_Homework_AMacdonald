@@ -2,40 +2,18 @@
 #include <string.h>
 #include <math.h>
 #include <sndfile.h>
+#include "Filter.h"
+#include "PitchShift.h"
 
-/* ----------------------- 
-    TO RUN
------------------------ */
-
-// export C_INCLUDE_PATH=/opt/homebrew/include/
-// export LIBRARY_PATH=/opt/homebrew/lib/
-// clang FilterFlanger.c -lsndfile && ./a.out
-
-#define kInputFileName "OHYEAH.wav"
-#define kOutputFileName "Out1.wav"
-
-//Hold SNDFILE and SF_INFO together
-typedef struct SoundFile {
-    SNDFILE *file;
-    SF_INFO info;
-}   SoundFile;
-
-//Function prototypes
-int openInputSndFile(SoundFile *inFile);
-int createOutputSndFile(SoundFile *inFile, SoundFile *outFile);
-void lowpass(float *inBuffer, float *outBuffer, sf_count_t bufferSize);
-void highpass(float *inBuffer, float *outBuffer, float *LFObuffer, sf_count_t bufferSize);
-
-float CUTOFF = 5000.0f;
+float CUTOFF = 1000.0f;
 int SAMPLE_RATE;
 
-float amplitude = 80.0f;
-float frequency = 20.0f;
+float amplitude = 30.0f;
+float frequency = 15.0f;
 
-int main(){
+int filter(){
     SoundFile inFile, outFile;
     
-  
     // Open input file and create output file
     int error = openInputSndFile(&inFile);
 
@@ -56,8 +34,8 @@ int main(){
     sf_read_float(inFile.file, inBuffer, bufferSize);
   
     // Process inBuffer and copy the result to outBuffer
-    //lowpass(inBuffer, outBuffer, bufferSize);
-    highpass(inBuffer, outBuffer, LFObuffer, bufferSize);
+    lowpass(inBuffer, outBuffer, LFObuffer, bufferSize);
+    //highpass(inBuffer, outBuffer, LFObuffer, bufferSize);
   
     // Create output file and write the result
     error = createOutputSndFile(&inFile, &outFile);
@@ -67,18 +45,27 @@ int main(){
     // Clean up
     sf_close(inFile.file);
     sf_close(outFile.file);
+
+    return 0;
 }
 
-//TODO: Implement your DSP here
-void lowpass(float *inBuffer, float *outBuffer, sf_count_t bufferSize)
+void lowpass(float *inBuffer, float *outBuffer, float *LFObuffer, sf_count_t bufferSize)
 {
-    double RC = 1.0/(CUTOFF*2*M_PI);  
-    double dt = 1.0/SAMPLE_RATE;  
-    double alpha = dt/(RC+dt); 
     outBuffer[0] = inBuffer[0];
     for(int i = 1; i < bufferSize; ++i) 
     {  
+        // data
+        double RC = 1.0/(CUTOFF*2*M_PI);  
+        double dt = 1.0/SAMPLE_RATE;  
+        double alpha = dt/(RC+dt); 
+
+        // filtering
         outBuffer[i] = outBuffer[i-1] + (alpha*(inBuffer[i] - outBuffer[i-1])); 
+
+        // lfo
+        float LFOsample = amplitude * sin(2.0 * M_PI * (frequency/SAMPLE_RATE) * i);
+        LFObuffer[i] = LFOsample;
+        CUTOFF += LFOsample;
     } 
 } 
 
@@ -87,27 +74,20 @@ void highpass(float *inBuffer, float *outBuffer, float *LFObuffer, sf_count_t bu
     outBuffer[0] = inBuffer[0];
     for(int i = 1; i < bufferSize; ++i) 
     {  
+        // data
         double RC = 1.0/(CUTOFF*2*M_PI);  
         double dt = 1.0/SAMPLE_RATE;  
         double alpha = dt/(RC+dt); 
+
+        // filtering
         outBuffer[i] = alpha * (outBuffer[i-1] + inBuffer[i] - inBuffer[i-1]);
+
+        // lfo
         float LFOsample = amplitude * sin(2.0 * M_PI * (frequency/SAMPLE_RATE) * i);
         LFObuffer[i] = LFOsample;
         CUTOFF += LFOsample;
     } 
 } 
-
-// float cutoffMod(float *sineBuffer){
-//     for (int t = 0; t < kNumFrames; t++){
-//         // Compute A sin(2πft+φ). Phase is ignored in this case.
-//         // frequency/kSampleRate converts frequency (continous) to sample rate representation (discrete).
-//         float sample = amplitude * sin(2.0 * M_PI * (frequency/kSampleRate) * t);
-//         // Write the same sample into all channels
-//         for(int c = 0; c < kNumChannels; c++){
-//         buffer[kNumChannels * t + c] = sample;
-//         }
-//     }
-// }
 
 int openInputSndFile(SoundFile *sndFile){
     //Initialize SF_INFO with 0s (Required for reading)
@@ -126,7 +106,7 @@ int openInputSndFile(SoundFile *sndFile){
         sf_close(sndFile->file);
 		    printf("Invalid encoding\n");
 		    return 1;
-	  }
+	}
 
     //Check if the file is mono
     if(sndFile->info.channels > 1){
@@ -136,7 +116,7 @@ int openInputSndFile(SoundFile *sndFile){
 
     //print out information about opened sound file
     printf("Sample rate for this file is %d\n", sndFile->info.samplerate);
-	  printf("A number of channels in this file is %d\n", sndFile->info.channels);
+	printf("A number of channels in this file is %d\n", sndFile->info.channels);
     printf("A number of frames in this file is %lld\n", sndFile->info.frames);
     printf("time is %f\n", (double)sndFile->info.frames / sndFile->info.samplerate);
 
@@ -150,6 +130,6 @@ int createOutputSndFile(SoundFile *inFile, SoundFile *outFile){
         printf("Error : could not open file : %s\n", kOutputFileName);
 		    puts(sf_strerror(NULL));
 		    return 1;
-	  }
+	}
     return 0;
 }
